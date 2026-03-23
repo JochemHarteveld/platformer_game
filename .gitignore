@@ -1,0 +1,45 @@
+# Unity generated
+Library/
+Temp/
+Logs/
+obj/
+ExportedObj/
+.vsconfig
+
+# Unity cache & builds
+[Bb]uild/
+[Bb]uilds/
+*.pidb
+*.unitypackage
+*.apk
+*.aab
+*.ipa
+
+# IDE generated
+.vs/
+.idea/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb.meta
+*.pdb
+*.mdb
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Per-user Unity settings
+UserSettings/
+
+# Rider
+.idea/

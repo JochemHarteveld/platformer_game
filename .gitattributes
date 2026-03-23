@@ -1,0 +1,78 @@
+# Normalize line endings for all text files
+* text=auto eol=lf
+
+# C# source files
+*.cs text eol=lf
+*.cs.meta text eol=lf
+
+# Unity YAML/text files
+*.meta text eol=lf
+*.shader text eol=lf
+*.cginc text eol=lf
+*.hlsl text eol=lf
+*.glsl text eol=lf
+*.compute text eol=lf
+*.asmdef text eol=lf
+*.asmref text eol=lf
+*.inputactions text eol=lf
+
+# JSON / config
+*.json text eol=lf
+*.xml text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+
+# Unity binary files — mark as binary to prevent diff/merge corruption
+*.unity binary
+*.asset binary
+*.prefab binary
+*.mat binary
+*.controller binary
+*.anim binary
+*.mask binary
+*.overrideController binary
+*.physicsMaterial2D binary
+*.physicMaterial binary
+*.guiskin binary
+*.fontsettings binary
+*.renderTexture binary
+*.mixer binary
+*.flare binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.bmp binary
+*.tga binary
+*.tiff binary
+*.psd binary
+*.exr binary
+*.hdr binary
+
+# Audio
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.aiff binary
+*.aif binary
+
+# 3D models
+*.fbx binary
+*.obj binary
+*.3ds binary
+*.dae binary
+*.blend binary
+
+# Fonts
+*.ttf binary
+*.otf binary
+*.fon binary
+*.fnt binary
+
+# Video
+*.mp4 binary
+*.mov binary
+*.avi binary
+*.webm binary
