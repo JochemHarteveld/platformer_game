@@ -13,7 +13,7 @@ public class EnemyVertical : MonoBehaviour
 
     void Start()
     {
-        GetComponent<SpriteRenderer>().color = Color.magenta;
+        GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 0.8f, 1f); // Bright neon pink
     }
 
     void Update()
