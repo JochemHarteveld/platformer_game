@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,24 +9,39 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 12f;
     public AudioClip jumpSound;
     public AudioClip deathSound;
+    public Sprite pickupSprite;
 
     private Rigidbody2D rb;
     private AudioSource audioSource;
     private bool isGrounded;
     private bool _isDying = false;
+    private bool _hasKey = false;
 
     [HideInInspector] public Vector3 _spawnPosition;
     private SpriteRenderer _spriteRenderer;
     private Color _originalColor;
+    private Sprite _originalSprite;
+
+    private KeyPickup _collectedKey;
+    private List<Door> _doors = new();
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         audioSource = GetComponent<AudioSource>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _originalColor = _spriteRenderer != null ? _spriteRenderer.color : Color.white;
+        _originalColor = Color.yellow;
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = _originalColor;
+            _originalSprite = _spriteRenderer.sprite;
+        }
         if (_spawnPosition == Vector3.zero)
             _spawnPosition = transform.position;
+
+        var col = GetComponent<Collider2D>();
+        if (col != null)
+            col.sharedMaterial = new PhysicsMaterial2D { friction = 0f, bounciness = 0f };
     }
 
     public void SetSpawnPoint(Vector3 pos)
@@ -108,8 +124,43 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = false;
 
         if (_spriteRenderer != null)
+        {
             _spriteRenderer.color = _originalColor;
+            _spriteRenderer.sprite = _originalSprite;
+        }
+
+        if (_collectedKey != null)
+        {
+            _collectedKey.gameObject.SetActive(true);
+            _collectedKey = null;
+        }
+        _hasKey = false;
+
+        foreach (var door in _doors)
+            door.Close();
 
         _isDying = false;
+    }
+
+    public bool HasKey => _hasKey;
+
+    public void CollectKey(KeyPickup key)
+    {
+        _hasKey = true;
+        _collectedKey = key;
+        if (_spriteRenderer != null && pickupSprite != null)
+            _spriteRenderer.sprite = pickupSprite;
+    }
+
+    public void UseKey()
+    {
+        _hasKey = false;
+        if (_spriteRenderer != null)
+            _spriteRenderer.sprite = _originalSprite;
+    }
+
+    public void RegisterDoor(Door door)
+    {
+        if (!_doors.Contains(door)) _doors.Add(door);
     }
 }
