@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Creates neon colored falling star particles with parallax depth.
+/// Creates neon colored star particles flying in all directions from outside the screen.
 /// Attach to a GameObject with a ParticleSystem component.
 /// Create 3 instances with different parallaxFactor values for depth effect.
 /// </summary>
@@ -25,9 +25,8 @@ public class NeonStarParticles : MonoBehaviour
     };
 
     [Header("Area Settings")]
-    public float spawnWidth = 35f;
-    public float spawnHeight = 25f;
-    public float spawnAboveCamera = 8f;
+    [Tooltip("Extra units beyond the screen edge where stars spawn.")]
+    public float spawnMargin = 3f;
 
     [Header("Parallax")]
     [Tooltip("1 = tracks camera (distant sky feel — barely moves on screen). 0 = world-fixed (part of the map feel — drifts off as player moves). Use 0.9/0.5/0.1 for far/mid/near layers.")]
@@ -57,9 +56,8 @@ public class NeonStarParticles : MonoBehaviour
         if (Camera.main != null)
         {
             _lastCameraPos = Camera.main.transform.position;
-            // Initialize position at camera
             Vector3 startPos = Camera.main.transform.position;
-            startPos.z = transform.position.z; // preserve configured Z depth
+            startPos.z = transform.position.z;
             transform.position = startPos;
         }
     }
@@ -76,6 +74,7 @@ public class NeonStarParticles : MonoBehaviour
         mainModule.maxParticles = maxParticles;
         mainModule.simulationSpace = ParticleSystemSimulationSpace.Local;
         mainModule.loop = true;
+        mainModule.prewarm = true; // screen already populated when scene loads
 
         // Random color from neon palette
         Gradient gradient = new Gradient();
@@ -92,24 +91,28 @@ public class NeonStarParticles : MonoBehaviour
 
         // Emission
         emissionModule = ps.emission;
-        emissionModule.rateOverTime = maxParticles / 7f; // scale rate with particle count
+        emissionModule.rateOverTime = maxParticles / 7f;
 
-        // Shape - wide box ABOVE camera, tilted to emit diagonally downward (shooting star direction)
+        // Shape — circle rim just outside the visible screen, all directions
+        // Radius = screen diagonal half + margin, computed from camera
+        float halfH = Camera.main != null ? Camera.main.orthographicSize : 5f;
+        float halfW = Camera.main != null ? halfH * Camera.main.aspect : halfH * (16f / 9f);
+        float spawnRadius = Mathf.Sqrt(halfW * halfW + halfH * halfH) + spawnMargin;
+
         shapeModule = ps.shape;
         shapeModule.enabled = true;
-        shapeModule.shapeType = ParticleSystemShapeType.Box;
-        shapeModule.scale = new Vector3(spawnWidth, spawnHeight, 1f);
-        shapeModule.position = new Vector3(0f, spawnAboveCamera, 0f); // offset above camera center
-        shapeModule.randomDirectionAmount = 0f;   // consistent direction, not random scatter
-        shapeModule.rotation = new Vector3(0f, 0f, -25f); // tilt ~25° so stars fall diagonally
+        shapeModule.shapeType = ParticleSystemShapeType.Circle;
+        shapeModule.radius = spawnRadius;
+        shapeModule.radiusThickness = 0f;       // emit from rim only — always outside screen
+        shapeModule.randomDirectionAmount = 1f; // fly in every direction
+        shapeModule.position = Vector3.zero;
+        shapeModule.rotation = Vector3.zero;
 
-        // Velocity over lifetime - slight downward gravity drift for natural feel
+        // No directional velocity bias — direction is fully random
         velocityModule = ps.velocityOverLifetime;
-        velocityModule.enabled = true;
-        velocityModule.space = ParticleSystemSimulationSpace.World;
-        velocityModule.y = new ParticleSystem.MinMaxCurve(-0.5f); // gentle extra downward pull
+        velocityModule.enabled = false;
 
-        // Color over lifetime - fade in, sustain, fade out (shimmer)
+        // Color over lifetime - fade in, sustain, fade out
         colorModule = ps.colorOverLifetime;
         colorModule.enabled = true;
         Gradient lifetimeGradient = new Gradient();
@@ -138,14 +141,13 @@ public class NeonStarParticles : MonoBehaviour
         trailModule.dieWithParticles = true;
         trailModule.inheritParticleColor = true;
 
-        // Trail tapers from wide at particle to point — creates soft comet-tail look
+        // Trail tapers from wide at particle to point — soft comet-tail look
         AnimationCurve trailWidthCurve = new AnimationCurve(
-            new Keyframe(0f, 1f),    // full width at particle head
-            new Keyframe(1f, 0f)    // tapers to nothing at tail
+            new Keyframe(0f, 1f),
+            new Keyframe(1f, 0f)
         );
         trailModule.widthOverTrail = new ParticleSystem.MinMaxCurve(starSize * 1.5f, trailWidthCurve);
 
-        // Trail alpha fades out toward tail; color inherits from particle
         Gradient trailGradient = new Gradient();
         trailGradient.SetKeys(
             new GradientColorKey[] {
