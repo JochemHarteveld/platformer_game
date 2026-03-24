@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isGrounded;
     private bool _isDying = false;
 
-    private Vector3 _spawnPosition;
+    [HideInInspector] public Vector3 _spawnPosition;
     private SpriteRenderer _spriteRenderer;
     private Color _originalColor;
 
@@ -24,7 +24,15 @@ public class PlayerMovement : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColor = _spriteRenderer != null ? _spriteRenderer.color : Color.white;
-        _spawnPosition = transform.position;
+        if (_spawnPosition == Vector3.zero)
+            _spawnPosition = transform.position;
+    }
+
+    public void SetSpawnPoint(Vector3 pos)
+    {
+        _spawnPosition = pos;
+        transform.position = pos;
+        if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
     void Update()

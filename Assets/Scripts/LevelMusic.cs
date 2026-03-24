@@ -6,15 +6,15 @@ public class LevelMusic : MonoBehaviour
     [Serializable]
     public struct MusicLayer
     {
-        public string    name;
+        public string name;
         public AudioClip clip;
         [Range(0f, 1f)]
-        public float     volume;
-        public bool      muted;
+        public float volume;
+        public bool muted;
 
         public MusicLayer(string name) : this()
         {
-            this.name   = name;
+            this.name = name;
             this.volume = 1f;
         }
     }
@@ -25,24 +25,36 @@ public class LevelMusic : MonoBehaviour
     [Header("Playback")]
     [Range(0f, 1f)]
     public float masterVolume = 0.5f;
-    public bool  loop         = true;
-    public bool  playOnStart  = true;
+    public bool loop = true;
+    public bool playOnStart = true;
 
     AudioSource[] _sources;
 
     void Start()
     {
+        Initialize();
+    }
+
+    public void Initialize()
+    {
+        // Clean up any existing AudioSources first
+        if (_sources != null)
+        {
+            foreach (var src in _sources)
+                if (src != null) DestroyImmediate(src);
+        }
+
         _sources = new AudioSource[layers.Length];
 
         for (int i = 0; i < layers.Length; i++)
         {
             var src = gameObject.AddComponent<AudioSource>();
-            src.clip        = layers[i].clip;
-            src.volume      = layers[i].muted ? 0f : layers[i].volume * masterVolume;
-            src.loop        = loop;
+            src.clip = layers[i].clip;
+            src.volume = layers[i].muted ? 0f : layers[i].volume * masterVolume;
+            src.loop = loop;
             src.playOnAwake = false;
             src.spatialBlend = 0f; // 2D audio
-            _sources[i]     = src;
+            _sources[i] = src;
         }
 
         if (playOnStart)
@@ -51,7 +63,7 @@ public class LevelMusic : MonoBehaviour
 
     // ── Public controls ──────────────────────────────────────────────────────
 
-    public void Play()  => ScheduleAll();
+    public void Play() => ScheduleAll();
 
     public void Stop()
     {
