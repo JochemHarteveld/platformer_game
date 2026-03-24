@@ -21,7 +21,7 @@ public class EnemySine : MonoBehaviour
     void Start()
     {
         startY = transform.position.y;
-        GetComponent<SpriteRenderer>().color = new Color(0f, 1f, 1f, 1f); // Bright neon cyan
+        GetComponent<SpriteRenderer>().color = new Color(0f, 2f, 2f, 1f); // HDR neon cyan
     }
 
     void Update()

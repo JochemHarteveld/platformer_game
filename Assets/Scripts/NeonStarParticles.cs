@@ -173,7 +173,9 @@ public class NeonStarParticles : MonoBehaviour
         }
     }
 
-    void Update()
+    // LateUpdate guarantees CameraFollow.Update() has already run this frame,
+    // so delta is always correct and jumps never cause a 1-frame jitter.
+    void LateUpdate()
     {
         if (Camera.main == null) return;
 

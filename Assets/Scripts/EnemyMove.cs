@@ -9,7 +9,7 @@ public class EnemyMove : MonoBehaviour
 
     void Start()
     {
-        GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 1f, 1f); // Neon magenta
+        GetComponent<SpriteRenderer>().color = new Color(2f, 0f, 2f, 1f); // HDR neon magenta
     }
 
     void Update()

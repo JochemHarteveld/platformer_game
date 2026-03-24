@@ -1,85 +1,110 @@
+using System;
 using UnityEngine;
 
-/// <summary>
-/// Manages background music for each level.
-/// Attach this to a GameObject in each scene and assign the music track for that level.
-/// The music will automatically play when the scene loads.
-/// </summary>
 public class LevelMusic : MonoBehaviour
 {
-    [Header("Level Music Settings")]
-    public AudioClip musicTrack;
-    [Range(0f, 1f)]
-    public float volume = 0.5f;
-    public bool loop = true;
-    public bool playOnStart = true;
+    [Serializable]
+    public struct MusicLayer
+    {
+        public string    name;
+        public AudioClip clip;
+        [Range(0f, 1f)]
+        public float     volume;
+        public bool      muted;
 
-    private AudioSource audioSource;
+        public MusicLayer(string name) : this()
+        {
+            this.name   = name;
+            this.volume = 1f;
+        }
+    }
+
+    [Header("Music Layers")]
+    public MusicLayer[] layers = Array.Empty<MusicLayer>();
+
+    [Header("Playback")]
+    [Range(0f, 1f)]
+    public float masterVolume = 0.5f;
+    public bool  loop         = true;
+    public bool  playOnStart  = true;
+
+    AudioSource[] _sources;
 
     void Start()
     {
-        // Get or add AudioSource component
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
+        _sources = new AudioSource[layers.Length];
+
+        for (int i = 0; i < layers.Length; i++)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
+            var src = gameObject.AddComponent<AudioSource>();
+            src.clip        = layers[i].clip;
+            src.volume      = layers[i].muted ? 0f : layers[i].volume * masterVolume;
+            src.loop        = loop;
+            src.playOnAwake = false;
+            src.spatialBlend = 0f; // 2D audio
+            _sources[i]     = src;
         }
 
-        // Configure AudioSource
-        audioSource.clip = musicTrack;
-        audioSource.volume = volume;
-        audioSource.loop = loop;
-        audioSource.playOnAwake = false;
-
-        // Play music if enabled
-        if (playOnStart && musicTrack != null)
-        {
-            audioSource.Play();
-        }
+        if (playOnStart)
+            ScheduleAll();
     }
 
-    /// <summary>
-    /// Play the music track
-    /// </summary>
-    public void Play()
-    {
-        if (audioSource != null && musicTrack != null)
-        {
-            audioSource.Play();
-        }
-    }
+    // ── Public controls ──────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Stop the music
-    /// </summary>
+    public void Play()  => ScheduleAll();
+
     public void Stop()
     {
-        if (audioSource != null)
-        {
-            audioSource.Stop();
-        }
+        if (_sources == null) return;
+        foreach (var src in _sources) src.Stop();
     }
 
-    /// <summary>
-    /// Pause the music
-    /// </summary>
     public void Pause()
     {
-        if (audioSource != null)
+        if (_sources == null) return;
+        foreach (var src in _sources) src.Pause();
+    }
+
+    public void SetMasterVolume(float v)
+    {
+        masterVolume = Mathf.Clamp01(v);
+        ApplyVolumes();
+    }
+
+    public void SetLayerVolume(int index, float v)
+    {
+        if (!ValidIndex(index)) return;
+        layers[index].volume = Mathf.Clamp01(v);
+        ApplyVolumes();
+    }
+
+    public void SetLayerMuted(int index, bool muted)
+    {
+        if (!ValidIndex(index)) return;
+        layers[index].muted = muted;
+        ApplyVolumes();
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    void ScheduleAll()
+    {
+        if (_sources == null) return;
+        double startTime = AudioSettings.dspTime + 0.1;
+        foreach (var src in _sources)
         {
-            audioSource.Pause();
+            if (src.clip == null) continue;
+            src.Stop();
+            src.PlayScheduled(startTime);
         }
     }
 
-    /// <summary>
-    /// Change the volume
-    /// </summary>
-    public void SetVolume(float newVolume)
+    void ApplyVolumes()
     {
-        volume = Mathf.Clamp01(newVolume);
-        if (audioSource != null)
-        {
-            audioSource.volume = volume;
-        }
+        if (_sources == null) return;
+        for (int i = 0; i < _sources.Length; i++)
+            _sources[i].volume = layers[i].muted ? 0f : layers[i].volume * masterVolume;
     }
+
+    bool ValidIndex(int i) => _sources != null && i >= 0 && i < _sources.Length;
 }

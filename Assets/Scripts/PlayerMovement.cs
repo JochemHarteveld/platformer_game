@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private AudioSource audioSource;
     private bool isGrounded;
+    private bool _isDying = false;
 
     private Vector3 _spawnPosition;
     private SpriteRenderer _spriteRenderer;
@@ -28,6 +29,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        if (_isDying) return;
+
         float move = 0f;
         var keyboard = Keyboard.current;
         if (keyboard != null)
@@ -75,21 +78,30 @@ public class PlayerMovement : MonoBehaviour
 
     void Die()
     {
+        if (_isDying) return;
+        _isDying = true;
+
         if (audioSource != null && deathSound != null)
             audioSource.PlayOneShot(deathSound);
 
         rb.linearVelocity = Vector2.zero;
+        StartCoroutine(DieSequence());
+    }
+
+    IEnumerator DieSequence()
+    {
+        if (_spriteRenderer != null)
+            _spriteRenderer.color = Color.red;
+
+        yield return new WaitForSeconds(0.4f);
+
         transform.position = _spawnPosition;
+        rb.linearVelocity = Vector2.zero;
         isGrounded = false;
 
         if (_spriteRenderer != null)
-            StartCoroutine(FlashRed());
-    }
+            _spriteRenderer.color = _originalColor;
 
-    IEnumerator FlashRed()
-    {
-        _spriteRenderer.color = Color.red;
-        yield return new WaitForSeconds(0.4f);
-        _spriteRenderer.color = _originalColor;
+        _isDying = false;
     }
 }
